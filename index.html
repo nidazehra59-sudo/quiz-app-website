@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Online Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0f24;--ink:#eef0ff;--mute:#9aa3d0;--v:#7c5cff;--t:#2ee6c5;--r:#ff6b9d;--card:rgba(255,255,255,.07);--line:rgba(255,255,255,.14)}
+*{box-sizing:border-box;margin:0}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(circle at 50% 0,#17194a,var(--bg) 70%)}
+.bg i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:float 18s ease-in-out infinite}
+.bg i:nth-child(1){width:46vmax;height:46vmax;background:var(--v);left:-12vmax;top:-10vmax}
+.bg i:nth-child(2){width:38vmax;height:38vmax;background:var(--t);right:-10vmax;top:25vh;animation-delay:-6s;opacity:.35}
+.bg i:nth-child(3){width:34vmax;height:34vmax;background:var(--r);left:20vw;bottom:-18vmax;animation-delay:-12s;opacity:.4}
+.bg b{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.5;animation:rise linear infinite}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(8vw,6vh) scale(1.15)}66%{transform:translate(-5vw,10vh) scale(.92)}}
+@keyframes rise{from{transform:translateY(105vh)}to{transform:translateY(-10vh)}}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.wrap{max-width:760px;margin:0 auto;padding:28px 18px 60px}
+.wrap.wide{max-width:1100px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:28px;backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .5s ease}
+h1{font-family:Fraunces,serif;font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin-bottom:8px}
+h2{font-family:Fraunces,serif;font-size:1.6rem;margin-bottom:6px}
+p.sub{color:var(--mute);margin-bottom:22px}
+label{display:block;font-size:.85rem;color:var(--mute);margin:14px 0 6px}
+input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ink);font:inherit;outline:none;transition:.2s}
+input:focus{border-color:var(--t);box-shadow:0 0 0 3px rgba(46,230,197,.2)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:13px 22px;color:#fff;font-weight:600;transition:.2s}
+button:focus-visible,input:focus-visible{outline:2px solid var(--t);outline-offset:2px}
+.pri{background:linear-gradient(120deg,var(--v),#5b8cff 60%,var(--t));width:100%;margin-top:22px;font-size:1.05rem}
+.pri:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(124,92,255,.5)}
+.ghost{background:rgba(255,255,255,.09);border:1px solid var(--line)}
+.ghost:hover{background:rgba(255,255,255,.16)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 4px}
+.chip{padding:6px 14px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:.85rem}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.3rem;padding:8px 16px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid var(--line)}
+.timer.low{color:var(--r);border-color:var(--r);animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 18px rgba(255,107,157,.6)}}
+.bar{height:6px;border-radius:9px;background:rgba(255,255,255,.1);margin-bottom:20px;overflow:hidden}
+.bar div{height:100%;background:linear-gradient(90deg,var(--v),var(--t));transition:width .4s}
+.q{font-size:1.25rem;line-height:1.45;margin:14px 0 18px;font-weight:600}
+.opt{display:block;width:100%;text-align:left;margin-bottom:10px;padding:15px 18px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-weight:400}
+.opt:hover{background:rgba(255,255,255,.13);transform:translateX(4px)}
+.opt.sel{background:linear-gradient(120deg,rgba(124,92,255,.55),rgba(46,230,197,.35));border-color:var(--t)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.pal{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;margin-top:20px}
+.pal button{padding:8px 0;font-size:.85rem;background:rgba(255,255,255,.07);border:1px solid var(--line)}
+.pal button.done{background:rgba(46,230,197,.3)}
+.pal button.cur{outline:2px solid var(--v)}
+.big{font-family:Fraunces,serif;font-size:5rem;line-height:1;margin:10px 0}
+.pass{color:var(--t)}.fail{color:var(--r)}
+.err{color:var(--r);font-size:.9rem;margin-top:10px;min-height:1.2em}
+.foot{text-align:center;margin-top:22px}
+.foot a{color:var(--mute);font-size:.85rem;cursor:pointer;text-decoration:underline}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.stat{padding:16px;border-radius:16px;background:rgba(0,0,0,.25);border:1px solid var(--line)}
+.stat b{display:block;font-size:1.9rem}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:560px){.cols{gap:8px}.col{padding:10px}.pal{grid-template-columns:repeat(5,1fr)}}
+.col{border-radius:18px;padding:16px;background:rgba(0,0,0,.22);border:1px solid var(--line);min-height:120px}
+.col h3{margin-bottom:12px}
+.col.p h3{color:var(--t)}.col.f h3{color:var(--r)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:11px 12px;margin-bottom:8px;border-radius:12px;background:rgba(255,255,255,.06);cursor:pointer;transition:.2s}
+.row:hover{background:rgba(255,255,255,.14)}
+.row small{color:var(--mute);display:block}
+.col.p{background:rgba(46,230,197,.08);border-color:rgba(46,230,197,.4)}.col.f{background:rgba(255,107,157,.08);border-color:rgba(255,107,157,.4)}.col h3{font-size:1.2rem}
+.modal{position:fixed;inset:0;background:rgba(5,7,20,.75);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+.modal.on{display:flex}
+.modal .card{max-width:680px;width:100%;max-height:85vh;overflow:auto;background:#141a3d}
+.ans{padding:10px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.ans.ok span{color:var(--t)}.ans.no span{color:var(--r)}
+.hide{display:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bg"><i></i><i></i><i></i></div>
+
+<!-- START -->
+<div id="start" class="wrap">
+  <div class="card">
+    <h1>Online Quiz</h1>
+    <p class="sub">100 questions. 60 minutes. Maths, English, Science, General Knowledge and Computer.</p>
+    <label for="nm">Full name</label><input id="nm" autocomplete="name" placeholder="e.g. Ayesha Khan">
+    <label for="rl">Roll number</label><input id="rl" placeholder="e.g. 2024-015">
+    <div class="chips"><span class="chip">20 questions per subject</span><span class="chip">Pass mark 50%</span><span class="chip">Auto-submit at 0:00</span></div>
+    <div id="e1" class="err"></div>
+    <button class="pri" id="go">Start quiz</button>
+  </div>
+  <div class="foot"><button class="ghost" id="adm">Admin dashboard</button></div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="wrap hide">
+  <div class="card">
+    <div class="top"><span class="chip" id="sub"></span><span class="chip" id="cnt"></span><span class="timer" id="tm">20:00</span></div>
+    <div class="bar"><div id="pb"></div></div>
+    <div class="q" id="qt"></div>
+    <div id="ops"></div>
+    <div class="nav"><button class="ghost" id="pv">Previous</button><button class="ghost" id="nx">Next</button></div>
+    <div class="pal" id="pal"></div>
+    <button class="pri" id="sm">Submit quiz</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="res" class="wrap hide">
+  <div class="card" style="text-align:center">
+    <h2 id="rn"></h2>
+    <div class="big" id="rp"></div>
+    <h2 id="rs"></h2>
+    <p class="sub" id="rd"></p>
+    <p class="sub" id="rm"></p>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="alog" class="wrap hide">
+  <div class="card">
+    <h2>Admin login</h2><p class="sub">Enter the dashboard password.</p>
+    <label for="ap">Password</label><input id="ap" type="password">
+    <div id="e2" class="err"></div>
+    <button class="pri" id="al">Open dashboard</button>
+    <div class="foot"><a id="back">Back to quiz</a></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="wrap wide hide">
+  <div class="card">
+    <div class="top"><h2>Results dashboard</h2><div><button class="ghost" id="csv">Download CSV</button> <button class="ghost" id="rf">Refresh</button> <button class="ghost" id="lo">Log out</button></div></div>
+    <input id="sq" placeholder="Search by name or roll number">
+    <div class="stats" id="st"></div>
+    <div class="cols">
+      <div class="col p"><h3 id="hp">Pass</h3><div id="lp"></div></div>
+      <div class="col f"><h3 id="hf">Fail</h3><div id="lf"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="md"><div class="card"><div class="top"><h2 id="mt"></h2><button class="ghost" id="mc">Close</button></div><div id="mb"></div></div></div>
+
+<script>
+/* ========== SETTINGS ========== */
+const CFG = {
+  URL: "https://script.google.com/macros/s/AKfycbx8che0p6Tw0bHBouxQEN1sQW1_m6dh1fPX0DzK7hkQ6oWwX6QsWOQmp5peNhrTnq-M/exec",
+  PASS: 50,          // passing percentage
+  ADMIN: "admin@123",// admin dashboard password
+  PER: 20,           // questions from each subject (5 subjects x 20 = 100 questions)
+  TIME: 60 * 60      // 60 minutes for 100 questions (change the first number to adjust)
+};
+
+/* ========== QUESTION BANK ==========
+ Format: [question, optA, optB, optC, optD]  and  ans = correct option index per question (0=A,1=B,2=C,3=D) */
+const BANK = {
+"Maths": {ans:"11221222221112211311", q:[
+["What is 15 + 25?","30","40","45","50"],["What is 9 × 7?","56","63","72","49"],["What is 100 ÷ 5?","10","15","20","25"],
+["What is the square of 8?","16","32","64","48"],["How many sides does a hexagon have?","5","6","7","8"],["What is ¾ of 20?","10","12","15","18"],
+["What is 144 ÷ 12?","10","11","12","14"],["What is the perimeter of a square with a side of 5 cm?","10 cm","15 cm","20 cm","25 cm"],
+["Which is the smallest prime number?","0","1","2","3"],["What is 35 − 18?","15","16","17","18"],["How many degrees are in a right angle?","45°","90°","180°","360°"],
+["What is 12²?","124","144","122","132"],["What is the Roman numeral for 10?","V","X","L","C"],["What is 0.5 as a fraction?","1/4","1/3","1/2","2/3"],
+["How many metres are there in 1 kilometre?","100","500","1,000","10,000"],["What is the average of 2, 4 and 6?","3","4","5","6"],["What is 20% of 100?","10","20","25","50"],
+["Which number is even?","13","17","21","24"],["How many faces does a cube have?","4","6","8","12"],["What is 7 + 8 × 2?","30","23","22","15"]]},
+"Science": {ans:"12122113211021112110", q:[
+["Which planet is called the Red Planet?","Venus","Mars","Jupiter","Mercury"],["Which organ pumps blood in the human body?","Lungs","Brain","Heart","Stomach"],
+["Which gas do plants absorb during photosynthesis?","Oxygen","Carbon dioxide","Hydrogen","Helium"],["What is the boiling point of water at sea level?","50°C","80°C","100°C","120°C"],
+["Which part of a plant absorbs water?","Flower","Leaves","Roots","Fruit"],["What is the closest star to Earth?","Sirius","The Sun","Polaris","Alpha Centauri"],
+["How many legs does an insect have?","4","6","8","10"],["Which vitamin can our skin produce with sunlight exposure?","Vitamin A","Vitamin B12","Vitamin C","Vitamin D"],
+["What is the chemical formula of water?","CO₂","O₂","H₂O","NaCl"],["Which force pulls objects towards Earth?","Friction","Gravity","Magnetism","Electricity"],
+["Which organs help humans breathe?","Stomach","Lungs","Liver","Kidneys"],["At what temperature does water freeze on the Celsius scale?","0°C","10°C","32°C","100°C"],
+["Which of these animals is a mammal?","Crocodile","Frog","Dolphin","Eagle"],["What is the centre of an atom called?","Electron","Nucleus","Cell","Molecule"],
+["What is Earth's natural satellite?","Mars","The Moon","The Sun","Venus"],["Which blood cells help fight infections?","Red blood cells","White blood cells","Platelets","Plasma"],
+["Which state of matter has a fixed shape?","Gas","Liquid","Solid","Vapour"],["Which sense organ helps us hear?","Eye","Ear","Nose","Tongue"],
+["What is the main source of energy for Earth?","The Moon","The Sun","Wind","Coal"],["Which gas do humans need for respiration?","Oxygen","Carbon dioxide","Helium","Methane"]]},
+"Computer": {ans:"01210101012002000102", q:[
+["What does CPU stand for?","Central Processing Unit","Computer Power Unit","Central Program Utility","Control Processing User"],["Which device is used for typing?","Monitor","Keyboard","Speaker","Printer"],
+["Which of these is an output device?","Mouse","Keyboard","Monitor","Scanner"],["What does RAM stand for?","Read Access Memory","Random Access Memory","Run All Memory","Rapid Action Machine"],
+["Which device moves the pointer on a computer?","Mouse","Printer","Speaker","Projector"],["Which program is used to browse websites?","Calculator","Web browser","Paint","Notepad"],
+["What does WWW stand for?","World Wide Web","World Web Window","Wide World Word","Web World Work"],["Which device prints documents on paper?","Scanner","Printer","Microphone","Mouse"],
+["Which of these is an operating system?","Windows","Google Search","YouTube","Microsoft Word"],["What is commonly called the brain of a computer?","Monitor","CPU","Keyboard","Mouse"],
+["Which key is commonly used to start a new line?","Shift","Ctrl","Enter","Alt"],["Which device is used to store files?","Hard drive","Monitor","Speaker","Webcam"],
+["What does PDF stand for?","Portable Document Format","Personal Data File","Printed Document Form","Program Design File"],["Which of these is an input device?","Speaker","Projector","Microphone","Monitor"],
+["What does USB stand for?","Universal Serial Bus","United System Board","Universal System Battery","User Service Box"],["Which application is commonly used for spreadsheets?","Microsoft Excel","Microsoft Paint","Notepad","Calculator"],
+["What is email used for?","Sending electronic messages","Printing photos only","Playing music only","Charging a computer"],["Which symbol is used in an email address?","#","@","&","%"],
+["What is malware?","Harmful software","A computer screen","A keyboard key","A printer cable"],["Which shortcut commonly copies selected text in Windows?","Ctrl + V","Ctrl + X","Ctrl + C","Ctrl + Z"]]},
+"English": {ans:"11222112131210222102", q:[
+["What is the plural of “Child”?","Childs","Children","Childes","Childrens"],["What is the opposite of “Hot”?","Warm","Cold","Heat","Boiling"],
+["Choose the correct spelling.","Beautifull","Beutiful","Beautiful","Beautifal"],["Which word is a noun?","Quickly","Happy","Happiness","Beautiful"],
+["What is the past tense of “Go”?","Goed","Gone","Went","Going"],["Choose the correct article: ___ apple.","A","An","Thee","Am"],
+["What is a synonym of “Big”?","Tiny","Large","Short","Weak"],["What is the opposite of “Early”?","Soon","Fast","Late","Quick"],
+["Which word is a pronoun?","Ali","They","Book","Beautiful"],["What is the plural of “Mouse”?","Mouses","Mices","Mouse","Mice"],
+["Choose the correct sentence.","She go to school.","She goes to school.","She going school.","She gone school."],["Which punctuation mark ends a question?","Full stop","Comma","Question mark","Colon"],
+["What is the past tense of “Eat”?","Eated","Ate","Eating","Eats"],["Which word is an adjective?","Beautiful","Slowly","Speak","Under"],
+["What is the opposite of “Brave”?","Strong","Fearless","Cowardly","Bold"],["What is the comparative form of “Tall”?","Tallest","More tall","Taller","Talling"],
+["Which of these is a vowel?","B","D","E","G"],["What is a synonym of “Begin”?","Finish","Start","Close","Stop"],
+["Complete the sentence: The book is ___ the table.","On","At","By","From"],["What is the collective noun for a group of lions?","Flock","Herd","Pride","Swarm"]]},
+"General Knowledge": {ans:"12231121202311002212", q:[
+["What is the capital of Pakistan?","Lahore","Islamabad","Karachi","Quetta"],["What is the national language of Pakistan?","Punjabi","English","Urdu","Sindhi"],
+["How many days are there in a leap year?","364","365","366","367"],["Which is the largest ocean in the world?","Atlantic Ocean","Indian Ocean","Arctic Ocean","Pacific Ocean"],
+["What is the national animal of Pakistan?","Lion","Markhor","Tiger","Deer"],["Which Pakistani city is known as the City of Lights?","Multan","Karachi","Murree","Peshawar"],
+["How many continents are there in the world?","5","6","7","8"],["Which is the highest mountain in the world above sea level?","K2","Mount Everest","Nanga Parbat","Kilimanjaro"],
+["What is the currency of Pakistan?","Riyal","Taka","Pakistani Rupee","Dinar"],["In which country are the Pyramids of Giza located?","Egypt","China","Japan","Brazil"],
+["How many colours are traditionally shown in a rainbow?","5","6","7","8"],["Which is the largest planet in our solar system?","Earth","Mars","Saturn","Jupiter"],
+["What is the national flower of Pakistan?","Rose","Jasmine","Tulip","Sunflower"],["Which month has 28 days in a common year?","January","February","March","April"],
+["Which country gifted the Statue of Liberty to the United States?","France","Italy","Canada","Germany"],["Who is known as Pakistan's national poet?","Allama Iqbal","Faiz Ahmed Faiz","Mir Taqi Mir","Hafeez Jalandhari"],
+["Which is the largest continent?","Europe","Africa","Asia","Australia"],["How many hours are there in one day?","12","18","24","36"],
+["Which sport uses a bat and wickets?","Football","Cricket","Hockey","Tennis"],["Which planet is closest to the Sun?","Venus","Earth","Mercury","Mars"]]}
+};
+
+/* ========== HELPERS ========== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+const view = id => ["start","quiz","res","alog","dash"].forEach(v => $(v).classList.toggle("hide", v !== id));
+
+// floating particles
+for (let i = 0; i < 28; i++) { const b = document.createElement("b"); b.style.left = Math.random() * 100 + "vw"; b.style.animationDuration = 14 + Math.random() * 22 + "s"; b.style.animationDelay = -Math.random() * 30 + "s"; b.style.opacity = .2 + Math.random() * .5; document.querySelector(".bg").appendChild(b); }
+
+/* ========== QUIZ ========== */
+let S = { name:"", roll:"", qs:[], pick:[], cur:0, left:CFG.TIME, timer:null, done:false };
+
+$("go").onclick = () => {
+  const name = $("nm").value.trim(), roll = $("rl").value.trim();
+  if (!name || !roll) { $("e1").textContent = "Please enter your name and roll number."; return; }
+  const qs = [];
+  Object.entries(BANK).forEach(([subject, d]) => {
+    shuffle(d.q.map((q, i) => ({ q, i }))).slice(0, CFG.PER).forEach(({ q, i }) => {
+      const right = q[1 + +d.ans[i]];
+      qs.push({ subject, text: q[0], opts: shuffle(q.slice(1)), right });
+    });
+  });
+  S = { name, roll, qs, pick: Array(qs.length).fill(null), cur: 0, left: CFG.TIME, timer: null, done: false };
+  view("quiz"); draw();
+  S.timer = setInterval(() => { S.left--; tick(); if (S.left <= 0) submit(true); }, 1000); tick();
+};
+
+function tick() { const t = $("tm"); t.textContent = fmt(Math.max(S.left, 0)); t.classList.toggle("low", S.left <= 300); }
+
+function draw() {
+  const q = S.qs[S.cur];
+  $("sub").textContent = q.subject;
+  $("cnt").textContent = "Question " + (S.cur + 1) + " of " + S.qs.length;
+  $("pb").style.width = (S.pick.filter(x => x !== null).length / S.qs.length * 100) + "%";
+  $("qt").textContent = q.text;
+  $("ops").innerHTML = q.opts.map((o, i) => `<button class="opt ${S.pick[S.cur] === i ? "sel" : ""}" data-i="${i}">${"ABCD"[i]}. ${esc(o)}</button>`).join("");
+  $("ops").querySelectorAll(".opt").forEach(b => b.onclick = () => { S.pick[S.cur] = +b.dataset.i; draw(); });
+  $("pal").innerHTML = S.qs.map((_, i) => `<button class="${S.pick[i] !== null ? "done" : ""} ${i === S.cur ? "cur" : ""}" data-i="${i}">${i + 1}</button>`).join("");
+  $("pal").querySelectorAll("button").forEach(b => b.onclick = () => { S.cur = +b.dataset.i; draw(); });
+  $("pv").disabled = S.cur === 0; $("nx").disabled = S.cur === S.qs.length - 1;
+}
+$("pv").onclick = () => { S.cur--; draw(); };
+$("nx").onclick = () => { S.cur++; draw(); };
+$("sm").onclick = () => {
+  const un = S.pick.filter(x => x === null).length;
+  if (confirm(un ? un + " question(s) unanswered. Submit anyway?" : "Submit your quiz now?")) submit(false);
+};
+
+async function submit(auto) {
+  if (S.done) return; S.done = true; clearInterval(S.timer);
+  let score = 0;
+  const answers = S.qs.map((q, i) => {
+    const chosen = S.pick[i] === null ? "Not attempted" : q.opts[S.pick[i]];
+    const ok = chosen === q.right; if (ok) score++;
+    return { s: q.subject, q: q.text, a: chosen, c: q.right, ok };
+  });
+  const total = S.qs.length, pct = Math.round(score / total * 100), status = pct >= CFG.PASS ? "Pass" : "Fail";
+  const payload = { name: S.name, roll: S.roll, score, total, percentage: pct, status, timeTaken: fmt(CFG.TIME - Math.max(S.left, 0)), answers };
+  view("res");
+  $("rn").textContent = S.name; $("rp").textContent = pct + "%";
+  $("rs").textContent = status === "Pass" ? "Congratulations, you passed!" : "You did not pass this time.";
+  $("rs").className = status === "Pass" ? "pass" : "fail";
+  $("rd").textContent = "Score: " + score + " / " + total + (auto ? " (time ran out, quiz auto-submitted)" : "");
+  $("rm").textContent = "Saving your result...";
+  try {
+    await fetch(CFG.URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+    $("rm").textContent = "Your result has been saved. You can close this page.";
+  } catch (e) { $("rm").textContent = "Could not save the result. Check your internet and tell your teacher."; }
+}
+
+/* ========== ADMIN ========== */
+$("adm").onclick = () => { view("alog"); $("ap").value = ""; $("e2").textContent = ""; };
+$("back").onclick = () => view("start");
+if (location.hash === "#admin") $("adm").click();
+$("ap").onkeydown = e => { if (e.key === "Enter") $("al").click(); };
+$("al").onclick = () => { if ($("ap").value === CFG.ADMIN) { view("dash"); load(true); } else $("e2").textContent = "Wrong password. Try again."; };
+$("lo").onclick = () => view("start");
+$("rf").onclick = () => load(true);
+$("sq").oninput = () => load(false);
+setInterval(() => { if (!$("dash").classList.contains("hide") && !$("md").classList.contains("on")) load(true); }, 30000);
+$("csv").onclick = () => {
+  const h = ["Name","Roll No","Score","Total","Percentage","Status","TimeTaken"];
+  const v = (x, k) => k === "Status" ? (Number(x.Percentage) >= CFG.PASS ? "Pass" : "Fail") : x[k];
+  const lines = [h.join(",")].concat(ROWS.map(x => h.map(k => '"' + String(v(x, k)).replace(/"/g, '""') + '"').join(",")));
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "quiz-results.csv"; a.click();
+};
+$("mc").onclick = () => $("md").classList.remove("on");
+$("md").onclick = e => { if (e.target === $("md")) $("md").classList.remove("on"); };
+
+let ROWS = [];
+async function load(force) {
+  $("lp").innerHTML = $("lf").innerHTML = "<p class='sub'>Loading...</p>";
+  try {
+    if (force || !ROWS.length) {
+      const r = await fetch(CFG.URL), t = await r.text(); let j;
+      try { j = JSON.parse(t); } catch (e) { throw new Error("Apps Script ne data nahi bheja. Deploy settings check karein: Execute as Me, Access Anyone, New version."); }
+      if (!Array.isArray(j)) throw new Error(j.error || "Unexpected response");
+      ROWS = j;
+    }
+    const p = [], f = [];
+    ROWS.forEach((x, i) => (Number(x.Percentage) >= CFG.PASS ? p : f).push(i));
+    const qs = $("sq").value.toLowerCase(), m = i => !qs || (ROWS[i].Name + " " + ROWS[i]["Roll No"]).toLowerCase().includes(qs);
+    const avg = ROWS.length ? Math.round(ROWS.reduce((s, x) => s + Number(x.Percentage || 0), 0) / ROWS.length) : 0;
+    $("st").innerHTML = [["Total students", ROWS.length], ["Passed", p.length], ["Failed", f.length], ["Average score", avg + "%"]].map(([k, v]) => `<div class="stat"><b>${v}</b>${k}</div>`).join("");
+    const list = a => a.length ? a.map(i => { const x = ROWS[i]; return `<div class="row" data-i="${i}"><div>${esc(x.Name)}<small>Roll ${esc(x["Roll No"])} · ${esc(x.TimeTaken)}</small></div><div><b>${esc(x.Percentage)}%</b><small>${esc(x.Score)}/${esc(x.Total)}</small></div></div>`; }).join("") : "<p class='sub'>No students yet.</p>";
+    $("lp").innerHTML = list(p.filter(m)); $("lf").innerHTML = list(f.filter(m));
+    $("hp").textContent = "Pass (" + p.length + ")"; $("hf").textContent = "Fail (" + f.length + ")";
+    document.querySelectorAll(".row").forEach(r => r.onclick = () => detail(+r.dataset.i));
+  } catch (e) { $("lp").innerHTML = $("lf").innerHTML = "<p class='err'>Could not load data: " + esc(e.message) + "</p>"; }
+}
+
+function detail(i) {
+  const x = ROWS[i]; let a = [];
+  try { a = JSON.parse(x.Answers); } catch (e) {}
+  $("mt").textContent = x.Name + " (" + x["Roll No"] + ")";
+  const sb = {}; a.forEach(r => { sb[r.s] = sb[r.s] || [0, 0]; sb[r.s][1]++; if (r.ok) sb[r.s][0]++; });
+  $("mb").innerHTML = '<div class="chips">' + Object.entries(sb).map(([k, v]) => `<span class="chip">${esc(k)}: ${v[0]}/${v[1]}</span>`).join("") + "</div>" + a.map((r, n) => `<div class="ans ${r.ok ? "ok" : "no"}"><b>${n + 1}. [${esc(r.s)}] ${esc(r.q)}</b><br><span>Answer: ${esc(r.a)}</span>${r.ok ? "" : " · Correct: " + esc(r.c)}</div>`).join("") || "<p>No answer data.</p>";
+  $("md").classList.add("on");
+}
+</script>
+</body>
+</html>
